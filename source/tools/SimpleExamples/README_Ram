@@ -1,0 +1,1 @@
+../../../pin -t obj-intel64/dcache.so -o output_dcache --  ~/Documents/kmeans/kmeans/omp_main -i  ~/Documents/kmeans/kmeans/Image_data/^Cn 4 -p 7

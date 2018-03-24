@@ -144,7 +144,7 @@ VOID LoadSingle(ADDRINT addr, UINT32 instId, THREADID threadid)
     // @todo we may access several cache lines for 
     // first level D-cache
     const BOOL dl1Hit = dl1[threadid]->AccessSingleLine(addr, CACHE_BASE::ACCESS_TYPE_LOAD);
-    
+
     const COUNTER counter = dl1Hit ? COUNTER_HIT : COUNTER_MISS;
     profile[threadid][instId][counter]++;
 }
@@ -155,7 +155,7 @@ VOID StoreSingle(ADDRINT addr, UINT32 instId, THREADID threadid)
     // @todo we may access several cache lines for 
     // first level D-cache
     const BOOL dl1Hit = dl1[threadid]->AccessSingleLine(addr, CACHE_BASE::ACCESS_TYPE_STORE);
-    
+
     const COUNTER counter = dl1Hit ? COUNTER_HIT : COUNTER_MISS;
     profile[threadid][instId][counter]++;
 }
@@ -176,18 +176,18 @@ VOID StoreSingle(ADDRINT addr, UINT32 instId, THREADID threadid)
 //
 ///* ===================================================================== */
 //
-VOID LoadSingleFast(ADDRINT addr,  THREADID threadid)
-{
-    dl1[threadid]->AccessSingleLine(addr, CACHE_BASE::ACCESS_TYPE_LOAD);    
-}
-
-/* ===================================================================== */
-
-VOID StoreSingleFast(ADDRINT addr,  THREADID threadid)
-{
-    dl1[threadid]->AccessSingleLine(addr, CACHE_BASE::ACCESS_TYPE_STORE);    
-}
-
+//VOID LoadSingleFast(ADDRINT addr)
+//{
+//    dl1[threadid]->AccessSingleLine(addr, CACHE_BASE::ACCESS_TYPE_LOAD);    
+//}
+//
+///* ===================================================================== */
+//
+//VOID StoreSingleFast(ADDRINT addr)
+//{
+//    dl1[threadid]->AccessSingleLine(addr, CACHE_BASE::ACCESS_TYPE_STORE);    
+//}
+//
 
 
 /* ===================================================================== */
@@ -226,17 +226,16 @@ VOID Instruction(INS ins, void * v)
 //            }
                 
         }
-        else
-        {
-            if( single )
-            {
-                INS_InsertPredicatedCall(
-                    ins, IPOINT_BEFORE,  (AFUNPTR) LoadSingleFast,
-                    IARG_MEMORYREAD_EA,
-                    IARG_THREAD_ID,
-                    IARG_END);
-                        
-            }
+//        else
+//        {
+//            if( single )
+//            {
+//                INS_InsertPredicatedCall(
+//                    ins, IPOINT_BEFORE,  (AFUNPTR) LoadSingleFast,
+//                    IARG_MEMORYREAD_EA,
+//                    IARG_END);
+//                        
+//            }
 //            else
 //            {
 //                INS_InsertPredicatedCall(
@@ -245,7 +244,7 @@ VOID Instruction(INS ins, void * v)
 //                    IARG_MEMORYREAD_SIZE,
 //                    IARG_END);
 //            }
-        }
+//        }
     }
         
     if ( INS_IsMemoryWrite(ins) && INS_IsStandardMemop(ins))
@@ -280,17 +279,16 @@ VOID Instruction(INS ins, void * v)
 //            }
 //                
         }
-        else
-        {
-            if( single )
-            {
-                INS_InsertPredicatedCall(
-                    ins, IPOINT_BEFORE,  (AFUNPTR) StoreSingleFast,
-                    IARG_MEMORYWRITE_EA,
-                    IARG_THREAD_ID,
-                    IARG_END);
-                        
-            }
+//        else
+//        {
+//            if( single )
+//            {
+//                INS_InsertPredicatedCall(
+//                    ins, IPOINT_BEFORE,  (AFUNPTR) StoreSingleFast,
+//                    IARG_MEMORYWRITE_EA,
+//                    IARG_END);
+//                        
+//            }
 //            else
 //            {
 //                INS_InsertPredicatedCall(
@@ -299,7 +297,7 @@ VOID Instruction(INS ins, void * v)
 //                    IARG_MEMORYWRITE_SIZE,
 //                    IARG_END);
 //            }
-        }
+//        }
             
     }
 }
@@ -321,7 +319,6 @@ VOID ThreadStart(THREADID threadid, CONTEXT *ctxt, INT32 flags, VOID *v)
 {
     numThreads++; 
 
-    cout << "Ram:Thread id is" << threadid << endl;
     dl1[threadid] = new DL1::CACHE("L1 Data Cache", 
                          KnobCacheSize.Value() * KILO,
                          KnobLineSize.Value(),
@@ -343,7 +340,6 @@ VOID ThreadFini(THREADID threadid, const CONTEXT *ctxt, INT32 code, VOID *v)
 {
     outFile <<
     "#\n"
-    "Thread ID is " << threadid << "\n"
     "# DCACHE stats\n"
     "#\n";
     
@@ -384,8 +380,6 @@ int main(int argc, char *argv[])
 
     // Register ThreadStart to be called when a thread starts.
     PIN_AddThreadStartFunction(ThreadStart, NULL);
-    INS_AddInstrumentFunction(Instruction, 0);
-    PIN_AddFiniFunction(Fini, 0);
 
     // Register Fini to be called when thread exits.
     PIN_AddThreadFiniFunction(ThreadFini, NULL);
@@ -405,6 +399,8 @@ int main(int argc, char *argv[])
 //    
 //    profile.SetThreshold( threshold );
     
+    INS_AddInstrumentFunction(Instruction, 0);
+    PIN_AddFiniFunction(Fini, 0);
 
     // Never returns
 
